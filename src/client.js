@@ -63,6 +63,10 @@ class Client extends EventEmitter {
             this.loggedIn = true;
             this.user = data;
         })
+
+        this.socket.on("updateCoins", (data) => {
+            this.user.coins = data.balance;
+        })
     }
 
     /**
@@ -122,6 +126,45 @@ class Client extends EventEmitter {
      */
     message(content) {
         this.send("message", content);
+    }
+
+    /**
+     * get the weekly shop
+     * @returns {Promise<{freeItem:string,lastItem:string,nextItem:string,collection:Array<string>}>}
+     */
+    getShop() {
+        return new Promise((resolve, reject) => {
+            this.send("getShop")
+            this.once("getShop", resolve);
+            setTimeout(() => reject("could not get shop"), 10000);
+        })
+    }
+
+
+    /**
+     * buy an item from the weekly shop
+     * @param {string} item item name
+     * @returns {Promise<{itemId:string,cost:number,balance:number}>}
+     */
+    buyItem(item) {
+        return new Promise((resolve, reject) => {
+            this.send("buyItem", item)
+            this.once("buyItem", resolve);
+            setTimeout(() => reject("could not buy item"), 10000);
+        })
+    }
+
+    /**
+     * redeem an item code
+     * @param {string} code code
+     * @returns {Promise<{itemId:string}>}
+     */
+    redeem(code) {
+        return new Promise((resolve, reject) => {
+            this.send("code", code, "");
+            this.once("buyItem", resolve);
+            setTimeout(() => reject("could not redeem code"), 10000);
+        })
     }
 
     /**
